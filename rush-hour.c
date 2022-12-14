@@ -108,7 +108,7 @@ int size_column(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int i, int j, int l){
 
 //l: length of the real parking lot 
 int size_row(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int i, int j, int l){
-    int size = 0;
+    int size = 1; //not sure
     char car = lot[i][j];
     for(j; j<l; j++){
         if(lot[i][j] == car){
@@ -121,11 +121,12 @@ int size_row(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int i, int j, int l){
     }
 }
 
-bool move_down(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j){
+bool move_down(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j, 
+int size){
     char car = lot[i][j];
-    if(i+2 < l){
-        if(lot[i+2][j] == EMPTY_SLOT){
-        lot[i+2][j] = lot[i][j];
+    if(i+size < l){
+        if(lot[i+size][j] == EMPTY_SLOT){
+        lot[i+size][j] = lot[i][j];
         lot[i][j] = EMPTY_SLOT;
         return true;
     } }
@@ -133,12 +134,13 @@ bool move_down(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j){
     } 
 
 
-bool move_up(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j){
+bool move_up(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j,
+int size){
     char car = lot[i][j];
     if(i-1 >= 0){
         if(lot[i-1][j] == EMPTY_SLOT){
-            lot[i-1][j] = lot[i+1][j];
-            lot[i+1][j] = EMPTY_SLOT;
+            lot[i-1][j] = lot[i][j];
+            lot[i+size -1][j] = EMPTY_SLOT;
             return true;
     } }
     return false;
@@ -147,11 +149,12 @@ bool move_up(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j){
 //should be done on a copy of the lot matrix and then, if returns true will be 
 //copied to the real matrix.
 
-bool move_right(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j){
+bool move_right(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j,
+int size){
     char car = lot[i][j];
-    if(j+2<l){
-        if(lot[i][j+2] == EMPTY_SLOT){
-            lot[i][j+2] = lot[i][j];
+    if(j+size<l){
+        if(lot[i][j+size] == EMPTY_SLOT){
+            lot[i][j+size] = lot[i][j];
             lot[i][j] = EMPTY_SLOT;
             return true;
         }
@@ -160,7 +163,8 @@ bool move_right(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j){
 }
 
 
-bool move_left(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j){
+bool move_left(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j,
+int size){
     char car = lot[i][j];
         if(j-1>=0){
             if(lot[i][j-1] == EMPTY_SLOT){
@@ -196,13 +200,13 @@ char dir, int i, int j, char car){
     }
     
     if(dir == 'r'){
-        return move_right(lot, l, i, j);
+        return move_right(lot, l, i, j, size_row(lot, i, j, l));
     } if(dir == 'l'){
-        return move_left(lot, l, i, j);
+        return move_left(lot, l, i, j, size_row(lot, i, j, l));
     } if(dir == 'u'){
-        return move_up(lot, l, i, j);
+        return move_up(lot, l, i, j, size_column(lot, i, j, l));
     } if(dir == 'd'){
-        return move_down(lot, l, i, j);
+        return move_down(lot, l, i, j, size_column(lot, i, j, l));
     } return false;
 
 }
@@ -307,11 +311,17 @@ bool is_win(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int size){
 
 bool handle_game(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int size){
     int moves = 0;
+    bool again = false;
     while(moves <= 10){
         char car, dir; 
-        printEnterCar();
+        if(!again){
+            printEnterCar();
+        }
+        
         if(scanf(" %c", &car) != 1 || !is_exist(car, car_amount(lot, size))){
-            printInvalidCar(); continue;
+            printInvalidCar(); again = true; continue; 
+        }else{
+            again = false;
         }
         printEnterDirection();
         if(scanf(" %c", &dir) != 1 || !valid_input(dir)){
