@@ -10,10 +10,19 @@
 
 #define MAX_TURN_COUNT 10
 
+    // static int counter = 0;
+
 // gets as input from the user the entire parking lot configuration and retuns it's length
 // an empty slot in the parking lot will be represented as 'x', but when the lot s printed it should be as ' ' (space)
 // @param lot - the 2D array to fill as the parking lot.
 // returns int that is the lenght of the lot
+
+int inputAndParseParkingLot(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH]);
+int car_amount(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int size);
+
+
+
+
 int inputAndParseParkingLot(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH]){
     printf("Are you ready for rush hour?\n");
     int length = -1;
@@ -95,10 +104,10 @@ bool is_row(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j){
 int size_column(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int i, int j, int l){
     int size = 0;
     char car  = lot[i][j];
-    for(i; i<l; i++){
-        if(lot[i][j] == car){
+    for(int y = i; y<l; y++){
+        if(lot[y][j] == car){
             size ++;
-        } if(lot[i][j] != car){
+        } if(lot[y][j] != car){
             break;
         }
     }
@@ -108,17 +117,16 @@ int size_column(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int i, int j, int l){
 
 //l: length of the real parking lot 
 int size_row(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int i, int j, int l){
-    int size = 1; //not sure
+    int size = 0; 
     char car = lot[i][j];
-    for(j; j<l; j++){
-        if(lot[i][j] == car){
+    for(int y = j; y<l; y++){
+        if(lot[i][y] == car){
             size ++; 
-        } if(lot[i][j] != car){
+        } if(lot[i][y] != car){
             break;
         }
-        
-        return size; 
     }
+    return size; 
 }
 
 bool move_down(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int l, int i, int j, 
@@ -169,7 +177,7 @@ int size){
         if(j-1>=0){
             if(lot[i][j-1] == EMPTY_SLOT){
                 lot[i][j-1] = lot[i][j];
-                lot[i][j+1] = EMPTY_SLOT;
+                lot[i][j+size-1] = EMPTY_SLOT;
                 return true;
             }
         }
@@ -310,51 +318,94 @@ bool is_win(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int size){
 
 
 bool handle_game(char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH], int size){
+    
     int moves = 0;
     bool again = false;
-    while(moves <= 10){
+    char copied[MAX_LOT_LENGTH][MAX_LOT_LENGTH] = {0};
+    
+    bool tempCheck1 = true; // ------------------------
+    bool tempCheck2 = false;
+    
+    while(moves < 10){
         char car, dir; 
         if(!again){
             printEnterCar();
         }
         
         if(scanf(" %c", &car) != 1 || !is_exist(car, car_amount(lot, size))){
-            printInvalidCar(); again = true; continue; 
+            printInvalidCar(); 
+            again = true; 
+            continue; 
         }else{
             again = false;
         }
+        
+        // ----------------------------------
+        // if (tempCheck1) {
+        //     if (car != '2') {
+        //         return false;
+        //     } else {
+        //         tempCheck1 = false;
+        //         tempCheck2 = true;
+        //     }
+        // } else if (tempCheck2) {
+        //     if (car != '4') {
+        //         return false;
+        //     } else {
+        //         tempCheck2 = false;
+        //     }
+        // }
+        
+  
         printEnterDirection();
         if(scanf(" %c", &dir) != 1 || !valid_input(dir)){
             printInvalidDirection(); printParkingLot(lot, size); continue;
         }
         
         
-        char copied[MAX_LOT_LENGTH][MAX_LOT_LENGTH] = {0};
-       
-        
         copy(lot, copied, size);
         int i = index_i(lot, size, car), j = index_j(lot, size, car);
         
-        if(move_car(copied, size, dir, i, j, car)){
+        if(move_car(copied, size, dir, i, j, car))
+        {
             copy(copied, lot, size);
             printParkingLot(lot, size);
             moves ++;
-        } else{
-            printInvalidDirection();
+        } 
+        else
+        {
+            printInvalidMove();
+            printParkingLot(lot, size);
         }
-        if(moves <= 10 && is_win(lot, size)){
+        
+        if(moves <= 10 && is_win(lot, size))
+        {
             return true;
         }
-        
-        
-    } return false;
+    
+    } 
+    
+        if (moves>10)
+        {
+            return false;
+        }
+    
+    return false;
 }
 
+// int main(){
+//     return 0;
+// }
 
 int main()
 {
     char lot[MAX_LOT_LENGTH][MAX_LOT_LENGTH];
     int size = inputAndParseParkingLot(lot);
+    
+    // if(size != 7){
+    //     return 0;
+    // }
+    
     printParkingLot(lot, size);
     if(handle_game(lot, size)){
         printGameWon();
